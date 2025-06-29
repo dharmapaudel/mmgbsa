@@ -148,7 +148,7 @@ numsteps 0
 ## implicit solvent 
 gbis 			on
 solventDielectric 	78.5
-ionConcentration 	0.3
+ionConcentration 	0.15
 alphaCutoff 		15
 sasa 			on
 surfaceTension 		0.0072
@@ -182,9 +182,9 @@ coorfile close
 
 
 
-command to do namd to calculate the solvation energy 
-namd2 +p10 +idlepoll complex.inp > compl.log
-./gbsa_energy.sh 
+#command to do namd to calculate the solvation energy 
+#namd2 +p10 +idlepoll complex.inp > compl.log
+# ./gbsa_energy.sh 
 
 
 
