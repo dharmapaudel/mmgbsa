@@ -173,18 +173,86 @@ coorfile open dcd ../complex.dcd
     }
 coorfile close
 
-
-
-
-
-
-
-
-
-
 #command to do namd to calculate the solvation energy 
 #namd2 +p10 +idlepoll complex.inp > compl.log
 # ./gbsa_energy.sh 
+
+
+
+
+
+
+
+
+#Steps of analysis 
+
+
+#Extract Potential Energy Terms
+
+# Extract potential energy for complex
+grep "^ENERGY:" complex.log | awk '{print $14}' > complex_potential.dat
+
+# Extract potential energy for protein
+grep "^ENERGY:" protein.log | awk '{print $14}' > protein_potential.dat
+
+# Extract potential energy for ligand
+grep "^ENERGY:" ligand.log | awk '{print $14}' > ligand_potential.dat 
+
+#Compute per-frame binding energy (ΔG_bind):
+
+paste complex_potential.dat protein_potential.dat ligand_potential.dat | \
+awk '{print $1 - $2 - $3}' > dg_bind.dat
+
+#Calculate Statistics
+
+awk '{
+    sum += $1; 
+    sum_sq += $1*$1; 
+    n++
+} END {
+    mean = sum/n;
+    stdev = sqrt(sum_sq/n - mean*mean);
+    sem = stdev/sqrt(n);
+    print "MMGBSA Binding Energy (Last 20 ns)";
+    print "===================================";
+    print "Frames analyzed: " n;
+    print "Average ΔG_bind: " mean " kcal/mol";
+    print "Standard deviation: " stdev " kcal/mol";
+    print "Standard error: " sem " kcal/mol";
+    print "Min/Max: " min "/" max " kcal/mol";
+}' min=$(sort -n dg_bind.dat | head -1) max=$(sort -n dg_bind.dat | tail -1) dg_bind.dat > mmgbsa_results.txt
+
+#Generate Time-Series Data
+#Add time information (0.1 ns/frame):
+awk '{
+    time_ns = 320.1 + (NR-1)*0.1;
+    print time_ns, $1
+}' dg_bind.dat > dg_bind_time.dat
+
+#Create Convergence Plot
+gnuplot << EOF
+set term pngcairo size 1200,800 font ",14"
+set output "mmgbsa_convergence.png"
+set title "MMGBSA Binding Energy Convergence (Last 20 ns)"
+set xlabel "Simulation Time (ns)"
+set ylabel "ΔG_{bind} (kcal/mol)"
+set grid
+
+# Calculate cumulative average
+stats "dg_bind_time.dat" using 2 name "G"
+set label sprintf("Final ΔG = %.2f ± %.2f kcal/mol", G_mean, G_stddev) at graph 0.05,0.95
+
+plot "dg_bind_time.dat" using 1:2 with points pt 7 lc rgb "#3498db" title "Per-frame", \
+     "" using 1:2 smooth cumulative with lines lw 3 lc rgb "#e74c3c" title "Cumulative Average", \
+     G_mean w lines lw 3 lc rgb "#2c3e50" title "Overall Average"
+EOF
+
+
+
+
+
+
+
 
 
 
