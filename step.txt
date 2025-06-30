@@ -23,6 +23,9 @@ for {set i 1} {$i < 100} {incr i} {                         #change here
 animate write dcd aligned.dcd waitfor all
 
 
+
+
+
 Step 3: Create System Files (PSF/PDB)
 
 mol new step3_input.psf
@@ -53,9 +56,10 @@ set ligand_sel [atomselect top "resname $lig_resname"]
 $ligand_sel writepsf ligand.psf
 $ligand_sel writepdb ligand.pdb
 
+
+
+
 Step 4: Create Component-Specific DCDs
-
-
 # create_trajs.tcl
 mol new step3_input.psf
 mol addfile aligned.dcd waitfor all
@@ -173,7 +177,19 @@ coorfile open dcd ../complex.dcd
     }
 coorfile close
 
-#command to do namd to calculate the solvation energy 
+#commands_in_vmd
+# source extract_frame.tcl
+#source aligned.tcl
+#source system.tcl
+#source trajectory.tcl
+
+
+
+
+
+
+#command to do namd to calculate the solvation energy in the terminal
+#please put .dcd and .pdb files and toppar files ../ (up)folder 
 #namd2 +p10 +idlepoll complex.inp > compl.log
 # ./gbsa_energy.sh 
 
