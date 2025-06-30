@@ -3,7 +3,7 @@ Step 1: Extract the Last 100 Frames (Last 10 ns)
 mol new step3_input.psf
 mol addfile all.dcd waitfor all
 set n_frames [molinfo top get numframes]
-set start_frame [expr $n_frames - 100]  ;# Frames 6296 to 6395 (0-indexed)
+set start_frame [expr $n_frames - 100]  ;#  change here only for example for the last 20ns, just write -200
 animate write dcd last_10ns.dcd beg $start_frame end [expr $n_frames-1] skip 0 waitfor all
 
 
